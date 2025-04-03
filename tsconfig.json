@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "types": ["node", "@types/node", "@types/cucumber"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/web/**/*.ts",
+    "src/web/**/*.feature",
+    "src/web/step-definitions/steps.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
