@@ -3,14 +3,49 @@ import { LoginPage } from '../pages/login-page';
 import { LoginErrorPage } from '../pages/login-error-page';
 import { HomePage } from '../pages/home-page';
 import { CustomWorld } from '../support/world';
+import { SearchPage } from '../pages/search-page';
+import { decrypt } from '../support/crypto-utils';
+import { globalLogin } from '../support/auth.helper';
 import { expect } from 'chai';
-
+import fs from 'fs';
+import dotenv from 'dotenv';
 
 const pages = {
   loginPage: LoginPage,
   loginErrorPage: LoginErrorPage,
-  homePage: HomePage
+  homePage: HomePage,
+  searchPage: SearchPage,
 };
+
+// Load environment variables
+dotenv.config();
+
+Given('I am logged in', async function (this: CustomWorld) {
+  if (!this.page) {
+    throw new Error('❌ Page object is not initialized. Ensure the Before hook is running.');
+  }
+
+  await this.page.goto('https://www.saucedemo.com/inventory.html');
+
+  const isInventoryVisible = await this.page.isVisible('.inventory_list');
+  if (!isInventoryVisible) {
+    throw new Error('❌ Login session might be invalid. Not on the inventory page.');
+  }
+
+  console.log('✅ Login state reused and inventory page loaded.');
+});
+
+Given('I launch the {string}', async function (envKey: string) {
+  if (!this.page) throw new Error("❌ Page object is not initialized.");
+
+  // Fetch the URL from the .env file using the provided key
+  const url = process.env[envKey];
+  if (!url) throw new Error(`❌ Environment variable "${envKey}" is not defined in the .env file.`);
+
+  // Navigate to the URL
+  await this.page.goto(url);
+  console.log(`✅ Navigated to URL: ${url}`);
+});
 
 Given('I am on the {string} page', async function (this: CustomWorld, pageName: keyof typeof pages) {
   console.log("🚀 Checking Page in Step Definitions:", this.page ? "✅ Page Initialized" : "❌ Page is Undefined");
@@ -29,6 +64,19 @@ When('I enter {string} as {string} on {string}', async function (this: CustomWor
   console.log("🚀 Checking Page before entering value:", this.page ? "✅ Page Initialized" : "❌ Page is Undefined");
 
   if (!this.page) throw new Error("❌ Page object is not initialized.");
+  if(field === 'password') 
+    {
+    
+      const password = process.env.ENCRYPTED_PASSWORD ?? '';
+      const encryptionKey = process.env.ENCRYPTION_KEY ?? '';
+      const encryptionIv = process.env.ENCRYPTION_IV ?? '';
+      
+      if (!password || !encryptionKey || !encryptionIv) {
+        throw new Error("❌ Missing required environment variables for decryption.");
+      }
+
+      value = decrypt(password, encryptionKey, encryptionIv);
+    }
 
   const PageObject = pages[pageName];
   const pageInstance = new PageObject(this.page);
@@ -125,7 +173,9 @@ Then(
     const count = await this.page.locator(suggestionSelector).count();
 
     expect(count).to.equal(expectedCount, `❌ Expected ${expectedCount} suggestions but got ${count}`);
+    await this.context?.storageState({ path: 'storage/state.json' });
   }
+  
 );
 
 Then(

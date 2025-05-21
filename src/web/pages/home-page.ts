@@ -7,6 +7,8 @@ export class HomePage extends BasePage {
   appName = { selector: '#header_container .app_logo' };
   password = { selector: '[data-test="password"]' };
   signIn = { selector: '[data-test="login-button"]' };
+  inventoryList = { selector: 'div.inventory_item_name' };
+
 
   constructor(page: Page) {
     super(page); // Ensures page is properly passed to BasePage

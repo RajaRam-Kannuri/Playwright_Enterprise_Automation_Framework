@@ -2,20 +2,27 @@
 import { BeforeAll, AfterAll, Before, After, AfterStep, Status } from '@cucumber/cucumber';
 import { chromium } from 'playwright';
 import { CustomWorld } from './world';
+import { globalLogin } from '../support/auth.helper';
 import * as fs from 'fs';
 
 let browser: import('playwright').Browser;  // will hold the global Browser instance
 
 BeforeAll(async function () {
-  // Launch the browser (one for all scenarios)
   browser = await chromium.launch({ headless: false });
+  // Launch the browser (one for all scenarios)
+  if (!fs.existsSync('storage/state.json')) {
+    await globalLogin(); // logs in and saves storageState
+  }
+
 });
 
 Before(async function (this: CustomWorld) {
+  
   // Create a new browser context and page for each scenario
   this.context = await browser.newContext({
     recordVideo: { dir: "videos/" },             // enable video recording to 'videos' folder
-    ignoreHTTPSErrors: true
+    ignoreHTTPSErrors: true,
+    storageState: 'storage/state.json',
   });
   await this.context.tracing.start({ screenshots: true, snapshots: true });  // start tracing
   this.page = await this.context.newPage();

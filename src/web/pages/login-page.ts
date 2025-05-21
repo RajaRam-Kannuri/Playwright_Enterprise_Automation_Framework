@@ -19,6 +19,6 @@ export class LoginPage extends BasePage {
   }
 
   async open(): Promise<void> {
-    await this.navigateTo(process.env.BASE_URL || "https://www.saucedemo.com/");
+    await this.navigateTo(process.env.BASE_URL_SAUCEDEMO || "https://www.saucedemo.com/");
   }
 }
